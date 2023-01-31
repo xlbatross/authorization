@@ -5,7 +5,7 @@ MainWidget::MainWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::MainWidget)
     , authRest(new AuthREST)
-    , loading(new QMovie("./Spinner-1s-200px.gif"))
+    , loading(new QMovie(":/gif/resource/Spinner-1s-200px.gif"))
 {
     ui->setupUi(this);
 
@@ -25,6 +25,7 @@ void MainWidget::sendRequest()
     ui->label->setMovie(loading);
     loading->start();
     ui->btn->setEnabled(false);
+
     authRest->get("/hello");
 }
 
@@ -32,8 +33,9 @@ void MainWidget::responseJson(QJsonObject response)
 {
     qDebug() << response;
     qDebug() << response["body"].toObject();
-    loading->stop();
+
     ui->label->clear();
+    loading->stop();
     ui->btn->setEnabled(true);
 }
 

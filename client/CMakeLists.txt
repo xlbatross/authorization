@@ -35,6 +35,7 @@ set(PROJECT_SOURCES
         mainwidget.ui
         rest.cpp
         rest.h
+        resource.qrc
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
