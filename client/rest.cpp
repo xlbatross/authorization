@@ -65,7 +65,7 @@ void REST::emitResponse()
         statusCode = -1;
     }
 
-    QJsonObject body = QJsonDocument::fromJson(container).object();
+    QJsonObject body = QJsonDocument::fromJson(container.toUtf8()).object();
 
     QJsonObject response;
     response["statusCode"] = statusCode;
@@ -77,7 +77,7 @@ void REST::emitResponse()
 
 void REST::slotReplyResponse()
 {
-    container = reply->readAll();
+    container.append(reply->readAll());
 }
 
 void REST::slotReplyError()
@@ -108,6 +108,21 @@ AuthREST::AuthREST()
 void AuthREST::get(const QString & url)
 {
     request(REST::GET, baseUrl + url);
+}
+
+void AuthREST::classify(const cv::Mat &img)
+{
+    // base64로 인코딩 -> utf-8로 디코딩
+    QByteArray base64encoding = QByteArray((char *)img.data, img.total() * img.channels()).toBase64();
+    QString utf8decoding = QString::fromUtf8(base64encoding);
+
+    QJsonObject body;
+    body["image"] = utf8decoding;
+
+    QJsonDocument doc;
+    doc.setObject(body);
+
+    request(REST::POST, baseUrl + "/classify", doc.toJson());
 }
 
 

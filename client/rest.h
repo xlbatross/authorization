@@ -4,11 +4,13 @@
 #include <QObject>
 #include <QDebug>
 #include <QEventLoop>
+#include <QByteArray>
 #include <QString>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
+#include <opencv2/opencv.hpp>
 
 class REST : public QObject
 {
@@ -27,7 +29,7 @@ private:
 
     qint32 statusCode;
     QString statusString;
-    QByteArray container;
+    QString container;
 
     void releaseReplyResources();
     void emitResponse();
@@ -48,6 +50,7 @@ public:
     AuthREST();
 
     void get(const QString & url);
+    void classify(const cv::Mat & img);
 
 private:
     const QString baseUrl;

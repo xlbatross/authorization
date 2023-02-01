@@ -27,6 +27,7 @@ include_directories(${OpenCV_INCLUDE_DIR})
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Network) # 네트워크 추가
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Gui) # GUI 추가
 
 set(PROJECT_SOURCES
         main.cpp
@@ -64,6 +65,7 @@ endif()
 target_link_libraries(${PROJECT_NAME}
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Network # 네트워크 추가
+    Qt${QT_VERSION_MAJOR}::Gui # Gui 추가
     ${LIBOPENCV}
     ${OpenCV_LIBRARIES}
 )
