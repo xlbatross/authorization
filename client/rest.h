@@ -1,4 +1,4 @@
-#ifndef REST_H
+﻿#ifndef REST_H
 #define REST_H
 
 #include <QObject>
@@ -32,28 +32,38 @@ private:
     QString container;
 
     void releaseReplyResources();
-    void emitResponse();
+    void emitCompleteResponse();
 
-private slots:
+protected slots:
     void slotFinishRequest();
     void slotReplyResponse();
     void slotReplyError();
 
 signals:
-    void responseJson(QJsonObject);
+    void signalCompleteResponse(QJsonObject);
 };
+
+
 
 
 class AuthREST : public REST
 {
+    Q_OBJECT
 public:
     AuthREST();
 
-    void get(const QString & url);
     void classify(const cv::Mat & img);
 
 private:
     const QString baseUrl;
+
+private slots:
+    void slotEmitResponse(QJsonObject response);
+
+signals:
+    void signalNoConnection();
+    void signalClassify();
+
 };
 
 #endif // REST_H

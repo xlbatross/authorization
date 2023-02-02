@@ -53,7 +53,7 @@ void REST::releaseReplyResources()
     reply->deleteLater();
 }
 
-void REST::emitResponse()
+void REST::emitCompleteResponse()
 {
     QVariant status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
     if (status_code.isValid())
@@ -72,7 +72,7 @@ void REST::emitResponse()
     response["statusString"] = statusString;
     response["body"] = body;
 
-    emit responseJson(response);
+    emit signalCompleteResponse(response);
 }
 
 void REST::slotReplyResponse()
@@ -84,14 +84,14 @@ void REST::slotReplyError()
 {
     statusString = reply->errorString();
     releaseReplyResources();
-    emitResponse();
+    emitCompleteResponse();
 }
 
 void REST::slotFinishRequest()
 {
     statusString = "OK";
     releaseReplyResources();
-    emitResponse();
+    emitCompleteResponse();
 }
 
 
@@ -102,12 +102,7 @@ AuthREST::AuthREST()
     : REST()
     , baseUrl("http://127.0.0.1:5000")
 {
-
-}
-
-void AuthREST::get(const QString & url)
-{
-    request(REST::GET, baseUrl + url);
+//    connect(this, SIGNAL(signalCompleteResponse(QJsonObject)), this, SLOT(slotEmitResponse(QJsonObject)));
 }
 
 void AuthREST::classify(const cv::Mat &img)
@@ -123,6 +118,11 @@ void AuthREST::classify(const cv::Mat &img)
     doc.setObject(body);
 
     request(REST::POST, baseUrl + "/classify", doc.toJson());
+}
+
+void AuthREST::slotEmitResponse(QJsonObject response)
+{
+
 }
 
 

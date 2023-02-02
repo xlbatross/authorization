@@ -37,6 +37,9 @@ set(PROJECT_SOURCES
         rest.cpp
         rest.h
         resource.qrc
+        alertdialog.cpp
+        alertdialog.h
+        alertdialog.ui
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <opencv2/opencv.hpp>
 #include "rest.h"
+#include "alertdialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWidget; }
@@ -19,6 +20,7 @@ class MainWidget : public QWidget
     Q_OBJECT
 
 public:
+    enum ResponseType {NONE = -1, CLASSIFY = 1};
     MainWidget(QWidget *parent = nullptr);
     ~MainWidget();
 
@@ -33,12 +35,13 @@ private:
     QMovie * mv_loading;
     QTimer * captureTimer;
     QTimer * clearTimer;
+    AlertDialog * alertDialog;
     QMutex imgMutex;
 
 private slots:
-    void captureVideo();
-    void sendRequest();
-    void responseJson(QJsonObject response);
-    void clearState();
+    void slotSendRequest();
+    void slotResponse(QJsonObject response);
+    void slotCaptureVideo();
+    void slotClearState();
 };
 #endif // MAINWIDGET_H
