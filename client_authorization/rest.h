@@ -50,19 +50,19 @@ class AuthREST : public REST
 {
     Q_OBJECT
 public:
+    enum ResponseType {NONE = -1, AUTHORIZATION = 1};
     AuthREST();
-
-    void classify(const cv::Mat & img);
+    void authorize(const cv::Mat & img);
 
 private:
     const QString baseUrl;
 
-private slots:
-    void slotEmitResponse(QJsonObject response);
+//private slots:
+//    void slotEmitResponse(QJsonObject response);
 
-signals:
-    void signalNoConnection();
-    void signalClassify();
+//signals:
+//    void signalNoConnection();
+//    void signalClassify();
 
 };
 

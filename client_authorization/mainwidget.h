@@ -20,7 +20,6 @@ class MainWidget : public QWidget
     Q_OBJECT
 
 public:
-    enum ResponseType {NONE = -1, CLASSIFY = 1};
     MainWidget(QWidget *parent = nullptr);
     ~MainWidget();
 

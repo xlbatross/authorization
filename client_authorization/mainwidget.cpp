@@ -63,7 +63,7 @@ void MainWidget::slotSendRequest()
     captureTimer->stop();
 
     imgMutex.lock();
-    authRest->classify(img);
+    authRest->authorize(img);
     imgMutex.unlock();
 }
 
@@ -86,10 +86,10 @@ void MainWidget::slotResponse(QJsonObject response)
 
         switch(type)
         {
-        case NONE:
+        case AuthREST::NONE:
             alertDialog->setMessage("잘못된 데이터가 전송되었습니다.");
             break;
-        case CLASSIFY:
+        case AuthREST::AUTHORIZATION:
         {
             if(attribute.keys().contains("image"))
             {

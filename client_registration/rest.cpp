@@ -98,31 +98,28 @@ void REST::slotFinishRequest()
 
 
 
-AuthREST::AuthREST()
+RegistREST::RegistREST()
     : REST()
     , baseUrl("http://127.0.0.1:5000")
 {
 //    connect(this, SIGNAL(signalCompleteResponse(QJsonObject)), this, SLOT(slotEmitResponse(QJsonObject)));
 }
 
-void AuthREST::classify(const cv::Mat &img)
+void RegistREST::regist(const RegistForm & form)
 {
     // base64로 인코딩 -> utf-8로 디코딩
-    QByteArray base64encoding = QByteArray((char *)img.data, img.total() * img.channels()).toBase64();
+    QByteArray base64encoding = QByteArray((char *)form.img.data, form.img.total() * form.img.channels()).toBase64();
     QString utf8decoding = QString::fromUtf8(base64encoding);
 
     QJsonObject body;
+    body["name"] = form.name;
+    body["address"] = form.address;
     body["image"] = utf8decoding;
 
     QJsonDocument doc;
     doc.setObject(body);
 
-    request(REST::POST, baseUrl + "/classify", doc.toJson());
-}
-
-void AuthREST::slotEmitResponse(QJsonObject response)
-{
-
+    request(REST::POST, baseUrl + "/regist", doc.toJson());
 }
 
 

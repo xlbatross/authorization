@@ -1,16 +1,12 @@
 from flask import Flask, request
 from flask_restx import Api, Resource
+
 from mediapipe.python.solutions import face_mesh as fm, drawing_utils as du, drawing_styles as ds
 import base64
 import numpy as np
-from enum import Enum
 
-class ResponseType(Enum):
-    NONE = -1
-    CLASSIFY = 1
-
-def jsonTemplate():
-    return {"type" : ResponseType.NONE.value, "attribute" : {}}
+from database import Database
+from templates import *
 
 face_mesh = fm.FaceMesh(
     max_num_faces=1,
@@ -20,6 +16,8 @@ face_mesh = fm.FaceMesh(
 
 image_shape = (480, 640, 3)
 
+db = Database()
+
 app = Flask(__name__)
 api = Api(app)
 
@@ -28,18 +26,18 @@ api = Api(app)
 #     def get(self):  # GET 요청시 리턴 값에 해당 하는 dict를 JSON 형태로 반환
 #         return {"hello": "안녕!"}
 
-@api.route('/classify')
-class Classify(Resource):
+@api.route('/authorize')
+class Authorization(Resource):
     def post(self):
         """
-        type : CLASSIFY (int)
+        type : AUTHORIZATION (int)
         attribute : 
         {
             
         }
         """
         template = jsonTemplate()
-        template["type"] = ResponseType.CLASSIFY.value
+        template["type"] = ResponseType.AUTHORIZATION.value
         param = request.get_json()
         try:
             imageBytes = base64.b64decode(param['image'].encode())
