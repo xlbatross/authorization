@@ -1,6 +1,11 @@
 import pymysql
 import pymysql.cursors
-from templates import ResultType
+from enum import Enum
+
+class ResultType(Enum):
+    ERROR = -1
+    SUCCESS = 1
+    FAILURE = 0
 
 class Database:
     def __init__(self):
@@ -21,29 +26,19 @@ class Database:
             charset=self.charset,
             cursorclass=pymysql.cursors.DictCursor
         )
-    
-    # 에리어 추가
-    def insertArea(self, areaName : str):
-        conn = self.connect()
-        result : dict = {"result" : ResultType.NONE.value, "message" : ""}
-        try:
-            with conn.cursor() as cursor:
-                sql = f"INSERT INTO area (area_name) VALUES ('{areaName}');"
-                cursor.execute(sql)
-            conn.commit()
-            result["result"] = ResultType.SUCCESS.value
-        except pymysql.err.Error as e:
-            conn.rollback()
-            result["result"] = ResultType.FAILURE.value
-            result["message"] = e.args[1]
-        finally:
-            conn.close()
+
+    def dbResultTemplate(self, name : str = None):
+        result : dict = {"result" : ResultType.ERROR.value}
+        if name is None:
+            result["message"] = ""
+        else:
+            result[name] = []
         return result
-    
+
     # 에리어 리스트
     def selectAreas(self):
         conn = self.connect()
-        result : dict = {"result" : ResultType.NONE.value, "areas" : []}
+        result : dict = self.dbResultTemplate("areas")
         try:
             with conn.cursor() as cursor:
                 sql = f"SELECT area_id, area_name FROM area WHERE area_active = True;"
@@ -52,24 +47,48 @@ class Database:
                     result["areas"].append(row)
             result["result"] = ResultType.SUCCESS.value
         except pymysql.err.Error as e:
-            result["result"] = ResultType.FAILURE.value
+            result["result"] = ResultType.ERROR.value
             result["areas"] = []
+        finally:
+            conn.close()
+        return result
+    
+    # 에리어 추가
+    def insertArea(self, areaName : str):
+        conn = self.connect()
+        result : dict = self.dbResultTemplate()
+        try:
+            with conn.cursor() as cursor:
+                sql = f"INSERT INTO area (area_name) VALUES ('{areaName}');"
+                result["result"] = cursor.execute(sql)
+                if result["result"] == ResultType.SUCCESS.value:
+                    result["message"] = "성공적으로 에리어가 추가되었습니다."
+                else:
+                    result["message"] = "에리어 추가에 실패했습니다."
+            conn.commit()
+        except pymysql.err.Error as e:
+            conn.rollback()
+            result["result"] = ResultType.ERROR.value
+            result["message"] = e.args[1]
         finally:
             conn.close()
         return result
     
     def updateArea(self, areaId : int, newAreaName : str):
         conn = self.connect()
-        result : dict = {"result" : ResultType.NONE.value, "message" : ""}
+        result : dict = self.dbResultTemplate()
         try:
             with conn.cursor() as cursor:
                 sql = f"UPDATE area SET area_name = '{newAreaName}' WHERE area_id = {areaId};"
-                cursor.execute(sql)
+                result["result"] = cursor.execute(sql)
+                if result["result"] == ResultType.SUCCESS.value:
+                    result["message"] = "성공적으로 수정되었습니다."
+                else:
+                    result["message"] = "해당 에리어가 존재하지 않습니다."
             conn.commit()
-            result["result"] = ResultType.SUCCESS.value
         except pymysql.err.Error as e:
             conn.rollback()
-            result["result"] = ResultType.FAILURE.value
+            result["result"] = ResultType.ERROR.value
             result["message"] = e.args[1]
         finally:
             conn.close()
@@ -77,16 +96,19 @@ class Database:
     
     def deleteArea(self, areaId : int):
         conn = self.connect()
-        result : dict = {"result" : ResultType.NONE.value, "message" : ""}
+        result : dict = self.dbResultTemplate()
         try:
             with conn.cursor() as cursor:
                 sql = f"UPDATE area SET area_active = False WHERE area_id = {areaId};"
-                cursor.execute(sql)
+                result["result"] = cursor.execute(sql)
+                if result["result"] == ResultType.SUCCESS.value:
+                    result["message"] = "성공적으로 삭제되었습니다."
+                else:
+                    result["message"] = "이미 삭제된 에리어이거나, 해당 에리어가 존재하지 않습니다."
             conn.commit()
-            result["result"] = ResultType.SUCCESS.value
         except pymysql.err.Error as e:
             conn.rollback()
-            result["result"] = ResultType.FAILURE.value
+            result["result"] = ResultType.ERROR.value
             result["message"] = e.args[1]
         finally:
             conn.close()
