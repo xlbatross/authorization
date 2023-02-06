@@ -13,9 +13,16 @@ class ResponseType(Enum):
     AUTHORIZATION = 1
 
     GET_AREAS = 2
-    INSERT_AREA = 3
-    UPDATE_AREA = 4
-    DELETE_AREA = 5
+    GET_AREA = 3
+    INSERT_AREA = 4
+    UPDATE_AREA = 5
+    DELETE_AREA = 6
+
+    GET_SECTORS = 7
+    GET_SECTOR = 8
+    INSERT_SECTOR = 9
+    UPDATE_SECTOR = 10
+    DELETE_SECTOR = 11
 
 def responseTemplate(enumMember : ResponseType):
     return {"type" : enumMember.value, "attribute" : {}}
@@ -67,7 +74,8 @@ class Areas(Resource):
         input value
         - request (json)
         {
-            "name" : (str)
+            "name" : (str),
+            "address" : (str)
         }
 
         return value
@@ -83,12 +91,37 @@ class Areas(Resource):
         """
         param = request.get_json()
         template = responseTemplate(ResponseType.INSERT_AREA)
-        if "name" in param and type(param["name"]) == str:
-            template["attribute"] = db.insertArea(param["name"])
+        if "name" in param and type(param["name"]) == str and "address" in param and type(param["address"]) == str:
+            template["attribute"] = db.insertArea(param["name"], param["address"])
         return template
 
 @api.route('/areas/<int:id>')
 class Areas(Resource):
+    def get(self, id):
+        """
+        description
+
+        input value
+        - url (<int: id>)
+
+        return value
+        - response (json)
+        {
+            "type" : GET_AREA (int),
+            "attribute" : 
+            {
+                "result" : SUCCESS(1) or ERROR(-1) (int),
+                "areas" : [{
+                    "area_id" : (int),
+                    "area_name" : (str)
+                }] (array)
+            }
+        }
+        """
+        template = responseTemplate(ResponseType.GET_AREA)
+        template["attribute"] = db.selectArea(id)
+        return template
+
     def put(self, id):
         """
         description
@@ -97,7 +130,8 @@ class Areas(Resource):
         - url (<int: id>)
         - request (json)
         {
-            "name" : (str)
+            "name" : (str),
+            "address" : (str)
         }
 
         return value
@@ -113,8 +147,8 @@ class Areas(Resource):
         """
         param = request.get_json()
         template = responseTemplate(ResponseType.UPDATE_AREA)
-        if "name" in param and type(param["name"]) == str:
-            template["attribute"] = db.updateArea(id, param["name"])
+        if "name" in param and type(param["name"]) == str and "address" in param and type(param["address"]) == str:
+            template["attribute"] = db.updateArea(id, param["name"], param["address"])
         return template
 
     def delete(self, id):
@@ -138,6 +172,34 @@ class Areas(Resource):
         template = responseTemplate(type=ResponseType.DELETE_AREA)
         template["attribute"] = db.deleteArea(id)
         return template
+
+@api.route('/areas/<int:id>/sectors')
+class AreaSectors(Resource):
+    def get(self, id):
+        """
+        description
+
+        input value
+        - url (<int: id>)
+
+        return value 
+        - response (json)
+        {
+            "type" : GET_AREAS (int),
+            "attribute" : 
+            {
+                "result" : SUCCESS(1) or ERROR(-1) (int),
+                "sectors" : [{
+                    "sector_id" : (int),
+                    "sector_name" : (str)
+                }] (array)
+            }
+        }
+        """
+        template = responseTemplate(ResponseType.GET_SECTORS)
+        template["attribute"] = db.selectSectors(id)
+        return template
+        
 
 @api.route('/authorize')
 class Authorization(Resource):
