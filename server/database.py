@@ -27,15 +27,17 @@ class Database:
             cursorclass=pymysql.cursors.DictCursor
         )
 
-    def dbResultTemplate(self, name : str = None):
+    def dbResultTemplate(self, name : str = None, isList : bool = True):
         result : dict = {"result" : ResultType.ERROR.value}
         if name is None:
             result["message"] = ""
-        else:
+        elif isList:
             result[name] = []
+        else:
+            result[name] = {}
         return result
 
-    # 에리어 리스트
+    # 에리어 리스트 검색
     def selectAreas(self):
         conn = self.connect()
         result : dict = self.dbResultTemplate("areas")
@@ -53,19 +55,20 @@ class Database:
             conn.close()
         return result
     
+    # 특정 에리어 정보 검색
     def selectArea(self, areaId : int):
         conn = self.connect()
-        result : dict = self.dbResultTemplate("areas")
+        result : dict = self.dbResultTemplate("area", isList=False)
         try:
             with conn.cursor() as cursor:
                 sql = f"SELECT area_name, area_address FROM area WHERE area_id = {areaId} and area_active = True;"
                 cursor.execute(sql)
-                for row in cursor:
-                    result["areas"].append(row)
+                one = cursor.fetchone()
+                result["area"] = one if one is None else {}
             result["result"] = ResultType.SUCCESS.value
         except pymysql.err.Error as e:
             result["result"] = ResultType.ERROR.value
-            result["areas"] = []
+            result["area"] = {}
         finally:
             conn.close()
         return result
@@ -91,6 +94,7 @@ class Database:
             conn.close()
         return result
     
+    # 특정 에리어 정보 갱신
     def updateArea(self, areaId : int, newAreaName : str, newAreaAddr : str):
         conn = self.connect()
         result : dict = self.dbResultTemplate()
@@ -111,6 +115,7 @@ class Database:
             conn.close()
         return result
     
+    # 특정 에리어 삭제
     def deleteArea(self, areaId : int):
         conn = self.connect()
         result : dict = self.dbResultTemplate()
@@ -131,7 +136,25 @@ class Database:
             conn.close()
         return result
     
-    
+    # 보안 레벨 리스트 검색
+    def selectLevels(self):
+        conn = self.connect()
+        result : dict = self.dbResultTemplate("levels")
+        try:
+            with conn.cursor() as cursor:
+                sql = f"SELECT level_id, level_value FROM level;"
+                cursor.execute(sql)
+                for row in cursor:
+                    result["levels"].append(row)
+            result["result"] = ResultType.SUCCESS.value
+        except pymysql.err.Error as e:
+            result["result"] = ResultType.ERROR.value
+            result["levels"] = []
+        finally:
+            conn.close()
+        return result
+
+    # 특정 에리어의 섹터 리스트 검색
     def selectSectors(self, areaId : int):
         conn = self.connect()
         result : dict = self.dbResultTemplate("sectors")
@@ -149,23 +172,25 @@ class Database:
             conn.close()
         return result
     
+    # 특정 섹터 검색
     def selectSector(self, sectorId : int):
         conn = self.connect()
-        result : dict = self.dbResultTemplate("sectors")
+        result : dict = self.dbResultTemplate("sector", isList=False)
         try:
             with conn.cursor() as cursor:
-                sql = f"SELECT sector.sector_name, level.level_value FROM sector INNER JOIN level ON sector.level_id = level.level_id WHERE sector.sector_id = {sectorId};"
+                sql = f"SELECT sector.sector_name, sector.level_id, level.level_value FROM sector INNER JOIN level ON sector.level_id = level.level_id WHERE sector.sector_id = {sectorId};"
                 cursor.execute(sql)
-                for row in cursor:
-                    result["sectors"].append(row)
+                one = cursor.fetchone()
+                result["sector"] = one if one is None else {}
             result["result"] = ResultType.SUCCESS.value
         except pymysql.err.Error as e:
             result["result"] = ResultType.ERROR.value
-            result["sectors"] = []
+            result["sector"] = {}
         finally:
             conn.close()
         return result
     
+    # 섹터 추가
     def insertSector(self, areaId : int, levelId : int, sectorName : str):
         conn = self.connect()
         result : dict = self.dbResultTemplate()
@@ -174,9 +199,9 @@ class Database:
                 sql = f"INSERT INTO sector (area_id, level_id, sector_name) VALUES ({areaId}, {levelId}, '{sectorName}');"
                 result["result"] = cursor.execute(sql)
                 if result["result"] == ResultType.SUCCESS.value:
-                    result["message"] = "성공적으로 에리어가 추가되었습니다."
+                    result["message"] = "성공적으로 섹터가 추가되었습니다."
                 else:
-                    result["message"] = "에리어 추가에 실패했습니다."
+                    result["message"] = "섹터 추가에 실패했습니다."
             conn.commit()
         except pymysql.err.Error as e:
             conn.rollback()
@@ -186,6 +211,7 @@ class Database:
             conn.close()
         return result
     
+    # 특정 섹터 정보 갱신
     def updateSector(self, sectorId : int, newLevelId : int, newSectorName : str):
         conn = self.connect()
         result : dict = self.dbResultTemplate()
@@ -196,7 +222,7 @@ class Database:
                 if result["result"] == ResultType.SUCCESS.value:
                     result["message"] = "성공적으로 수정되었습니다."
                 else:
-                    result["message"] = "해당 에리어가 존재하지 않습니다."
+                    result["message"] = "해당 섹터가 존재하지 않습니다."
             conn.commit()
         except pymysql.err.Error as e:
             conn.rollback()
@@ -206,6 +232,7 @@ class Database:
             conn.close()
         return result
     
+    # 특정 섹터 삭제
     def deleteSector(self, sectorId : int):
         conn = self.connect()
         result : dict = self.dbResultTemplate()
@@ -216,7 +243,7 @@ class Database:
                 if result["result"] == ResultType.SUCCESS.value:
                     result["message"] = "성공적으로 삭제되었습니다."
                 else:
-                    result["message"] = "이미 삭제된 에리어이거나, 해당 에리어가 존재하지 않습니다."
+                    result["message"] = "이미 삭제된 섹터거나, 해당 섹터가 존재하지 않습니다."
             conn.commit()
         except pymysql.err.Error as e:
             conn.rollback()
@@ -225,81 +252,104 @@ class Database:
         finally:
             conn.close()
         return result
-
     
-    # def getPropertyList(self, money):
-    #     conn = self.connect()
-    #     result : list[Property] = []
-    #     try:
-    #         with conn.cursor() as cursor:
-    #             sql = f"SELECT * FROM property WHERE property_entitlement + property_deposit <= {money}"
-    #             cursor.execute(sql)
-    #             for row in cursor:
-    #                 result.append(Property(row))
-    #     except:
-    #         conn.rollback()
-    #     finally:
-    #         conn.close()
-    #     return result
+    # 특정 에리어의 유저 리스트 검색
+    def selectUsers(self, areaId : int):
+        conn = self.connect()
+        result : dict = self.dbResultTemplate("users")
+        try:
+            with conn.cursor() as cursor:
+                sql = f"SELECT user_id, user_name FROM user WHERE area_id = {areaId} and user_active = True;"
+                cursor.execute(sql)
+                for row in cursor:
+                    result["users"].append(row)
+            result["result"] = ResultType.SUCCESS.value
+        except pymysql.err.Error as e:
+            result["result"] = ResultType.ERROR.value
+            result["users"] = []
+        finally:
+            conn.close()
+        return result
     
-    # def getPlaceList(self, latitude, longitude):
-    #     conn = self.connect()
-    #     result : list[Place] = []
-    #     try:
-    #         with conn.cursor() as cursor:
-    #             sql = f"SELECT * FROM place WHERE place_latitude BETWEEN {latitude - (0.0091 / 2)} AND {latitude + (0.0091 / 2)} AND place_longitude BETWEEN {longitude - (0.0113 / 2)} and {longitude + (0.0113 / 2)}"
-    #             print(sql)
-    #             cursor.execute(sql)
-    #             for row in cursor:
-    #                 result.append(Place(row))
-    #     finally:
-    #         conn.close()
-    #     return result
-
-    # def getPlaceCategoryList(self, latitude, longitude):
-    #     conn = self.connect()
-    #     result : list[PlaceCategory] = []
-    #     try:
-    #         with conn.cursor() as cursor:
-    #             sql = f"""SELECT place_category, count(*) as count, 
-    #             (CASE WHEN place_category = "음식점" THEN (CASE WHEN count(*) >= 50 THEN 50 ELSE floor(count(*) / 10) * 10 END) * -1
-    #             ELSE sum(place_weight) END) as weight FROM place 
-    #             WHERE place_latitude BETWEEN {latitude - (0.0091 / 2)} AND {latitude + (0.0091 / 2)} AND place_longitude BETWEEN {longitude - (0.0113 / 2)} AND {longitude + (0.0113 / 2)} 
-    #             GROUP BY place_category"""
-    #             print(sql)
-    #             cursor.execute(sql)
-    #             for row in cursor:
-    #                 result.append(PlaceCategory(row))
-    #     finally:
-    #         conn.close()
-    #     return result
-
-    # def getPopulation(self, neighborhood : str):
-    #     conn = self.connect()
-    #     result : int = 0
-    #     try:
-    #         with conn.cursor() as cursor:
-    #             sql = f"SELECT population_count FROM population WHERE population_name = '{neighborhood}'"
-    #             print(sql)
-    #             cursor.execute(sql)
-    #             result = cursor.fetchone()['population_count']
-    #     finally:
-    #         conn.close()
-    #     return result
-
-    # def insertPlaceList(self, placeDataList : list[PlaceData]):
-    #     conn = self.connect()
-    #     result : bool = True
-    #     try:
-    #         with conn.cursor() as cursor:
-    #             for placeData in placeDataList:
-    #                 sql = f"INSERT INTO place (place_name, place_address, place_latitude, place_longitude, place_category, place_weight, update_date) VALUES ('{placeData.placeName}', '{placeData.placeAddress}', {placeData.placeLatitude}, {placeData.placeLongitude}, '{placeData.placeCategory}', {placeData.placeWeight}, curdate())"
-    #                 cursor.execute(sql)
-    #         conn.commit()
-    #     except Exception as e:
-    #         conn.rollback()
-    #         print(e)
-    #         result = False
-    #     finally:
-    #         conn.close()
-    #     return result
+    # 특정 유저 검색
+    def selectUser(self, userId : int):
+        conn = self.connect()
+        result : dict = self.dbResultTemplate("user", isList=False)
+        try:
+            with conn.cursor() as cursor:
+                sql = f"SELECT user.user_name, user.user_image, user.user_phone, user_datetime, level.level_id, level.level_value FROM sector INNER JOIN level ON user.level_id = level.level_id WHERE user.user_id = {userId};"
+                cursor.execute(sql)
+                one = cursor.fetchone()
+                result["user"] = one if one is None else {}
+            result["result"] = ResultType.SUCCESS.value
+        except pymysql.err.Error as e:
+            result["result"] = ResultType.ERROR.value
+            result["user"] = {}
+        finally:
+            conn.close()
+        return result
+    
+    # 유저 추가
+    def insertUser(self, areaId : int, levelId : int, userName : str, userImage : str, userPhone : str):
+        conn = self.connect()
+        result : dict = self.dbResultTemplate()
+        try:
+            with conn.cursor() as cursor:
+                sql = f"INSERT INTO user (area_id, level_id, user_name, user_image, user_phone) VALUES ({areaId}, {levelId}, '{userName}', '{userImage}', '{userPhone}');"
+                result["result"] = cursor.execute(sql)
+                if result["result"] == ResultType.SUCCESS.value:
+                    result["message"] = "성공적으로 유저가 추가되었습니다."
+                else:
+                    result["message"] = "유저 추가에 실패했습니다."
+            conn.commit()
+        except pymysql.err.Error as e:
+            conn.rollback()
+            result["result"] = ResultType.ERROR.value
+            result["message"] = e.args[1]
+        finally:
+            conn.close()
+        return result
+    
+    # 특정 유저 정보 수정
+    def updateUser(self, userId : int, newLevelId : int, newUserName : str, newUserPhone : str):
+        conn = self.connect()
+        result : dict = self.dbResultTemplate()
+        try:
+            with conn.cursor() as cursor:
+                sql = f"UPDATE user SET level_id = {newLevelId}, user_name = '{newUserName}', user_phone = '{newUserPhone}' WHERE user_id = {userId};"
+                result["result"] = cursor.execute(sql)
+                if result["result"] == ResultType.SUCCESS.value:
+                    result["message"] = "성공적으로 수정되었습니다."
+                else:
+                    result["message"] = "해당 유저가 존재하지 않습니다."
+            conn.commit()
+        except pymysql.err.Error as e:
+            conn.rollback()
+            result["result"] = ResultType.ERROR.value
+            result["message"] = e.args[1]
+        finally:
+            conn.close()
+        return result
+    
+    # 특정 유저 삭제
+    def deleteUser(self, userId : int):
+        conn = self.connect()
+        result : dict = self.dbResultTemplate()
+        try:
+            with conn.cursor() as cursor:
+                sql = f"UPDATE user SET user_active = False WHERE user_id = {userId};"
+                result["result"] = cursor.execute(sql)
+                if result["result"] == ResultType.SUCCESS.value:
+                    result["message"] = "성공적으로 삭제되었습니다."
+                else:
+                    result["message"] = "이미 삭제된 유저거나, 해당 유저가 존재하지 않습니다."
+            conn.commit()
+        except pymysql.err.Error as e:
+            conn.rollback()
+            result["result"] = ResultType.ERROR.value
+            result["message"] = e.args[1]
+        finally:
+            conn.close()
+        return result
+    
+    

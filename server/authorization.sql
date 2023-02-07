@@ -1,10 +1,10 @@
 CREATE DATABASE  IF NOT EXISTS `authorization` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `authorization`;
--- MySQL dump 10.13  Distrib 8.0.30, for macos12 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.31, for Win64 (x86_64)
 --
--- Host: localhost    Database: authorization
+-- Host: 127.0.0.1    Database: authorization
 -- ------------------------------------------------------
--- Server version	8.0.30
+-- Server version	8.0.31
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -79,14 +79,14 @@ DROP TABLE IF EXISTS `log`;
 CREATE TABLE `log` (
   `log_id` int NOT NULL,
   `sector_id` int NOT NULL,
-  `person_id` int NOT NULL,
+  `user_id` int NOT NULL,
   `log_inout` tinyint NOT NULL,
   `log_datetime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`log_id`),
   KEY `log_section_id_idx` (`sector_id`),
-  KEY `log_person_id_idx` (`person_id`),
-  CONSTRAINT `log_person_id` FOREIGN KEY (`person_id`) REFERENCES `person` (`person_id`),
-  CONSTRAINT `log_sector_id` FOREIGN KEY (`sector_id`) REFERENCES `sector` (`sector_id`)
+  KEY `log_user_id_idx` (`user_id`),
+  CONSTRAINT `log_sector_id` FOREIGN KEY (`sector_id`) REFERENCES `sector` (`sector_id`),
+  CONSTRAINT `log_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -97,40 +97,6 @@ CREATE TABLE `log` (
 LOCK TABLES `log` WRITE;
 /*!40000 ALTER TABLE `log` DISABLE KEYS */;
 /*!40000 ALTER TABLE `log` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `person`
---
-
-DROP TABLE IF EXISTS `person`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `person` (
-  `person_id` int NOT NULL AUTO_INCREMENT,
-  `area_id` int NOT NULL,
-  `level_id` int NOT NULL,
-  `person_name` varchar(45) NOT NULL,
-  `person_image` varchar(45) NOT NULL,
-  `person_phone` varchar(45) NOT NULL,
-  `person_active` tinyint NOT NULL DEFAULT '1',
-  `person_datatime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (`person_id`),
-  UNIQUE KEY `person_image_UNIQUE` (`person_image`),
-  KEY `person_level_id_idx` (`level_id`),
-  KEY `person_area_id_idx` (`area_id`),
-  CONSTRAINT `person_area_id` FOREIGN KEY (`area_id`) REFERENCES `area` (`area_id`),
-  CONSTRAINT `person_level_id` FOREIGN KEY (`level_id`) REFERENCES `level` (`level_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `person`
---
-
-LOCK TABLES `person` WRITE;
-/*!40000 ALTER TABLE `person` DISABLE KEYS */;
-/*!40000 ALTER TABLE `person` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -163,6 +129,40 @@ LOCK TABLES `sector` WRITE;
 /*!40000 ALTER TABLE `sector` DISABLE KEYS */;
 /*!40000 ALTER TABLE `sector` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `user`
+--
+
+DROP TABLE IF EXISTS `user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user` (
+  `user_id` int NOT NULL AUTO_INCREMENT,
+  `area_id` int NOT NULL,
+  `level_id` int NOT NULL,
+  `user_name` varchar(45) NOT NULL,
+  `user_image` varchar(45) NOT NULL,
+  `user_phone` varchar(45) NOT NULL,
+  `user_active` tinyint NOT NULL DEFAULT '1',
+  `user_datatime` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  UNIQUE KEY `user_image_UNIQUE` (`user_image`),
+  KEY `user_level_id_idx` (`level_id`),
+  KEY `user_area_id_idx` (`area_id`),
+  CONSTRAINT `user_area_id` FOREIGN KEY (`area_id`) REFERENCES `area` (`area_id`),
+  CONSTRAINT `user_level_id` FOREIGN KEY (`level_id`) REFERENCES `level` (`level_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user`
+--
+
+LOCK TABLES `user` WRITE;
+/*!40000 ALTER TABLE `user` DISABLE KEYS */;
+/*!40000 ALTER TABLE `user` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -173,4 +173,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-02-06 23:33:22
+-- Dump completed on 2023-02-07 17:07:03
